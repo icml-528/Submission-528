@@ -1,4 +1,4 @@
-# TAT implemneted in PyTorch
+# TAT implemented in PyTorch
 
 ## Prerequisites
 - PyTorch >= 0.4.0 (with suitable CUDA and CuDNN version)
