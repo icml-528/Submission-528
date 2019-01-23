@@ -154,15 +154,3 @@ for x in accumulator.keys():
 print('acc')
 print(float(np.sum(label.flatten() == predict_index.flatten()) )/ label.flatten().shape[0])
 
-lcount = Counter(label.flatten())
-t = []
-sumacc = 0
-for i in range(12):
-    t.append(0)
-for (i, predd) in enumerate(predict_index.flatten()):
-    if label.flatten()[i] == predict_index.flatten()[i]:
-        t[label.flatten()[i]] += 1
-for i in range(12):
-    t[i] = float(t[i]) / lcount[i]
-acc = sum(t) / 12
-print(t, acc)

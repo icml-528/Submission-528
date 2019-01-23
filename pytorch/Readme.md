@@ -8,9 +8,11 @@
 - Numpy
 
 ## Training
-
+'''
 VisDA-2017
 python VisDA.py 
-
+'''
+'''
 Multi-Domain Sentiment
 python Sentiment_msda.py
+'''
