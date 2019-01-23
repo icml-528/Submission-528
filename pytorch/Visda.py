@@ -43,50 +43,47 @@ while k < 2800:
     for (i, ((im_source, label_source,), (im_target, label_target,))) in enumerate(
             zip(mini_batches_source, mini_batches_target)):
         
-        # =========================forward pass
+        # =========================generate transferable examples
         
-        
-       
+      
         label_source_0 = Variable(torch.from_numpy(label_source)).cuda()
-        
         feature_fooling = Variable(torch.from_numpy(im_target).cuda(),requires_grad = True)
         feature_fooling_c = Variable(torch.from_numpy(im_source).cuda(),requires_grad = True)
-   
+		feature_fooling_0 = feature_fooling.detach()
+		feature_fooling_c1 = feature_fooling_c.detach()
+		
         for i in range(20):
             scores = discriminator(feature_fooling)
-            loss = BCELossForMultiClassification(torch.ones_like(scores) , 1 - scores) #- 0.2 * loss_fn(feature_fooling, feature_fooling_0)
+            loss = BCELossForMultiClassification(torch.ones_like(scores) , 1 - scores) - 0.1 * torch.sum((feature_fooling - feature_fooling_0) * (feature_fooling - feature_fooling_0))
             loss.backward()
             g = feature_fooling.grad
             feature_fooling = feature_fooling + 2 * g 
             cls.zero_grad()
-            
             discriminator.zero_grad()
-
             feature_fooling = Variable(feature_fooling.data.cpu().cuda(),requires_grad = True)
         
-        feature_fooling_c1 = feature_fooling_c.detach()
         for xs in range(20):
             scorec = discriminator.forward(feature_fooling_c)
-            losss = BCELossForMultiClassification(torch.ones_like(scorec) ,  scorec) #- 0.2 * loss_fn(feature_fooling_c, feature_fooling_c1)
+            losss = BCELossForMultiClassification(torch.ones_like(scorec) ,  scorec) - 0.1 * torch.sum((feature_fooling_c - feature_fooling_c1) * (feature_fooling_c - feature_fooling_c1))
             losss.backward()
             gss = feature_fooling_c.grad
             feature_fooling_c = feature_fooling_c +  2 * gss
             cls.zero_grad()
-            
             discriminator.zero_grad()
             feature_fooling_c = Variable(feature_fooling_c.data.cpu().cuda(),requires_grad = True)
         
         for xss in range(20):
             _,_,_,scorec = cls.forward(feature_fooling_c)
-            loss = CrossEntropyLoss(label_source_0, scorec)# - 0.2 * loss_fn(feature_fooling_c, feature_fooling_c1)
+            loss = CrossEntropyLoss(label_source_0, scorec) - 0.1 * torch.sum((feature_fooling_c - feature_fooling_c1) * (feature_fooling_c - feature_fooling_c1))
             loss.backward()
             gs = feature_fooling_c.grad
             feature_fooling_c = feature_fooling_c +  3 * gs
             cls.zero_grad()
-            
             discriminator.zero_grad()
             feature_fooling_c = Variable(feature_fooling_c.data.cpu().cuda(),requires_grad = True)
         
+		
+		#==========================forward pass
         feature_source = Variable(torch.from_numpy(im_source)).cuda()
         label_source = Variable(torch.from_numpy(label_source)).cuda()
         feature_target = Variable(torch.from_numpy(im_target)).cuda()
@@ -115,6 +112,8 @@ while k < 2800:
         dis = torch.sum((predict_prob_fooling - predict_prob_target)*(predict_prob_fooling - predict_prob_target))
         ce_extra_c = CrossEntropyLoss(label_source, predict_prob_fooling_c)
         
+		
+		#=============================backprop
         with OptimizerManager([optimizer_cls , optimizer_discriminator]):
             loss = ce  + 0.5 * dloss + 0.5 * dloss_a + ce_extra_c + dis
             loss.backward()
