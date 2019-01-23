@@ -116,7 +116,7 @@ while k < 2800:
         ce_extra_c = CrossEntropyLoss(label_source, predict_prob_fooling_c)
         
         with OptimizerManager([optimizer_cls , optimizer_discriminator]):
-            loss = ce  + 0.5 * dloss + 0.5 * dloss_a + 0.2 * entropy + ce_extra_c + dis
+            loss = ce  + 0.5 * dloss + 0.5 * dloss_a + ce_extra_c + dis
             loss.backward()
                         
         k += 1
